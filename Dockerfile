@@ -10,9 +10,7 @@ ENV DEBIAN_FRONTEND=noninteractive
 # 优化点 1: 首先修改APT源和hosts以加速后续下载
 RUN sed -i 's/security.ubuntu.com/mirrors.ustc.edu.cn/g' /etc/apt/sources.list && \
     sed -i 's/archive.ubuntu.com/mirrors.ustc.edu.cn/g' /etc/apt/sources.list && \
-    echo "202.38.95.110 mirrors.ustc.edu.cn" >> /etc/hosts && \
-    echo "101.6.15.130 mirrors.tuna.tsinghua.edu.cn" >> /etc/hosts && \
-    echo "64.50.233.100 packages.ros.org" >> /etc/hosts
+ 
  
 # 优化点 2: 拆分 RUN 以便调试
 # 步骤 2.1: 更新包列表

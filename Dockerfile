@@ -9,7 +9,7 @@ ENV DEBIAN_FRONTEND=noninteractive
 
 # 优化点 1: 首先修改APT源和hosts以加速后续下载
 RUN sed -i 's/security.ubuntu.com/mirrors.ustc.edu.cn/g' /etc/apt/sources.list && \
-    sed -i 's/archive.ubuntu.com/mirrors.ustc.edu.cn/g' /etc/apt/sources.list && \
+    sed -i 's/archive.ubuntu.com/mirrors.ustc.edu.cn/g' /etc/apt/sources.list
  
  
 # 优化点 2: 拆分 RUN 以便调试

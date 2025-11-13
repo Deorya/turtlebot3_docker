@@ -1,0 +1,73 @@
+# 工作流名称
+name: Build and Push to GHCR
+
+# 1. 触发器
+# 当有代码 push 到 'main' 分支时触发
+on:
+  push:
+    branches: ["main"]
+  # (可选) 允许手动触发
+  workflow_dispatch:
+
+# 2. 权限设置
+# 必须授予 GITHUB_TOKEN 写入 'packages' (GHCR) 的权限
+permissions:
+  contents: read # 读取仓库内容（检出代码）
+  packages: write # 推送镜像到 GHCR
+
+# 3. 作业 (Jobs)
+jobs:
+  build-and-push-image:
+    # 运行在 GitHub 托管的最新 Ubuntu 虚拟机上
+    runs-on: ubuntu-latest
+
+    steps:
+      # 步骤 1: 检出仓库代码
+      # 以便 Action 可以访问 Dockerfile, src/, start_simulation.sh 等文件
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # 步骤 2: 登录到 GitHub Container Registry (GHCR)
+      # GITHUB_TOKEN 是 GitHub Actions 自动生成的
+      # 'github.actor' 是触发此工作流的用户名
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      # 步骤 3: 提取 Docker 元数据（镜像名称和标签）
+      # 这会自动生成智能标签，例如：
+      # ghcr.io/YOUR_USERNAME/YOUR_REPO:main (如果分支是 main)
+      # ghcr.io/YOUR_USERNAME/YOUR_REPO:latest (如果分支是默认分支)
+      # ghcr.io/YOUR_USERNAME/YOUR_REPO:commit-sha
+      - name: Extract Docker metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          # 镜像名称格式为 ghcr.io/OWNER/REPO
+          images: ghcr.io/${{ github.repository }}
+
+      # 步骤 4: 设置 Docker Buildx
+      # 这是一个更现代的构建器
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      # 步骤 5: 构建并推送到 GHCR
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v5
+        with:
+          # context: Dockerfile 所在的目录 ('.')
+          context: .
+          # file: 明确指定 Dockerfile 的路径
+          file: ./Dockerfile
+          # push: true 表示执行推送
+          push: true
+          # tags: 使用上一步 'meta' 提取的标签
+          tags: ${{ steps.meta.outputs.tags }}
+          # labels: 使用上一步 'meta' 提取的标签
+          labels: ${{ steps.meta.outputs.labels }}
+          # 启用 GitHub Actions 缓存，加速后续构建
+          cache-from: type=gha
+          cache-to: type=gha,mode=max

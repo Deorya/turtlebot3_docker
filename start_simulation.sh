@@ -11,3 +11,4 @@ export TURTLEBOT3_MODEL=burger
 echo "正在启动TurtleBot3多机器人仿真..."
 ros2 launch my_turtlebot3_sim multi_robot.launch.py
  
+ 

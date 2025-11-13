@@ -14,19 +14,32 @@ RUN sed -i 's/security.ubuntu.com/mirrors.ustc.edu.cn/g' /etc/apt/sources.list &
     echo "101.6.15.130 mirrors.tuna.tsinghua.edu.cn" >> /etc/hosts && \
     echo "64.50.233.100 packages.ros.org" >> /etc/hosts
  
-# 优化点 2: 现在从国内镜像安装软件包
-RUN apt-get update && apt-get install -y \
+# 优化点 2: 拆分 RUN 以便调试
+# 步骤 2.1: 更新包列表
+RUN apt-get update
+
+# 步骤 2.2: 安装基础构建工具
+RUN apt-get install -y \
     build-essential \
     python3-pip \
     python3-colcon-common-extensions \
+    git \
+    wget
+
+# 步骤 2.3: 安装 ROS 核心包
+RUN apt-get install -y \
     ros-humble-turtlebot3* \
     ros-humble-gazebo-ros-pkgs \
-    ros-humble-rviz2 \
+    ros-humble-rviz2
+
+# 步骤 2.4: 安装 ROS 导航和SLAM包
+RUN apt-get install -y \
     ros-humble-nav2-bringup \
-    ros-humble-slam-toolbox \
-    git \
-    wget \
-    && rm -rf /var/lib/apt/lists/*
+    ros-humble-slam-toolbox
+
+# 步骤 2.5: 清理 apt 缓存
+# (请参见下面的重要提示)
+RUN rm -rf /var/lib/apt/lists/*
    
 # 优化点 3: 将模型下载与源设置分离
 RUN mkdir -p /root/.gazebo/models && \

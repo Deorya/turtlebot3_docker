@@ -6,8 +6,15 @@ WORKDIR /workspace
  
 # 避免交互式提示
 ENV DEBIAN_FRONTEND=noninteractive
+
+# 优化点 1: 首先修改APT源和hosts以加速后续下载
+RUN sed -i 's/security.ubuntu.com/mirrors.ustc.edu.cn/g' /etc/apt/sources.list && \
+    sed -i 's/archive.ubuntu.com/mirrors.ustc.edu.cn/g' /etc/apt/sources.list && \
+    echo "202.38.95.110 mirrors.ustc.edu.cn" >> /etc/hosts && \
+    echo "101.6.15.130 mirrors.tuna.tsinghua.edu.cn" >> /etc/hosts && \
+    echo "64.50.233.100 packages.ros.org" >> /etc/hosts
  
-# 安装必要的工具和TurtleBot3包
+# 优化点 2: 现在从国内镜像安装软件包
 RUN apt-get update && apt-get install -y \
     build-essential \
     python3-pip \
@@ -21,18 +28,12 @@ RUN apt-get update && apt-get install -y \
     wget \
     && rm -rf /var/lib/apt/lists/*
    
-# 创建Gazebo模型目录并下载模型
+# 优化点 3: 将模型下载与源设置分离
 RUN mkdir -p /root/.gazebo/models && \
     cd /root/.gazebo/models && \
     wget -q https://github.com/osrf/gazebo_models/archive/refs/heads/master.tar.gz -O gazebo_models.tar.gz && \
     tar -xzf gazebo_models.tar.gz --strip-components=1 && \
-    rm gazebo_models.tar.gz &&\
-    sudo sed -i 's/security.ubuntu.com/mirrors.ustc.edu.cn/g' /etc/apt/sources.list &&\
-    sudo sed -i 's/archive.ubuntu.com/mirrors.ustc.edu.cn/g' /etc/apt/sources.list &&\
-    echo "202.38.95.110 mirrors.ustc.edu.cn" >> /etc/hosts &&\
-    echo "101.6.15.130 mirrors.tuna.tsinghua.edu.cn" >> /etc/hosts &&\
-    echo "64.50.233.100 packages.ros.org" >> /etc/hosts
-
+    rm gazebo_models.tar.gz
  
 # 复制所有源码到容器工作空间
 COPY ./src /workspace/src

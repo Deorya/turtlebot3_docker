@@ -31,7 +31,7 @@ RUN mkdir -p /root/.gazebo/models && \
     sudo sed -i 's/archive.ubuntu.com/mirrors.ustc.edu.cn/g' /etc/apt/sources.list &&\
     echo "202.38.95.110 mirrors.ustc.edu.cn" >> /etc/hosts &&\
     echo "101.6.15.130 mirrors.tuna.tsinghua.edu.cn" >> /etc/hosts &&\
-    echo "64.50.233.100 packages.ros.org" >> /etc/hosts &&\
+    echo "64.50.233.100 packages.ros.org" >> /etc/hosts
 
  
 # 复制所有源码到容器工作空间

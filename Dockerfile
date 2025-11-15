@@ -14,30 +14,18 @@ RUN sed -i 's/security.ubuntu.com/mirrors.ustc.edu.cn/g' /etc/apt/sources.list &
  
 # 优化点 2: 拆分 RUN 以便调试
 # 步骤 2.1: 更新包列表
-RUN apt-get update
-
-# 步骤 2.2: 安装基础构建工具
-RUN apt-get install -y \
+RUN apt-get update && apt-get install -y \
     build-essential \
     python3-pip \
     python3-colcon-common-extensions \
     git \
-    wget
-
-# 步骤 2.3: 安装 ROS 核心包
-RUN apt-get install -y \
+    wget  \
     ros-humble-turtlebot3* \
     ros-humble-gazebo-ros-pkgs \
-    ros-humble-rviz2
-
-# 步骤 2.4: 安装 ROS 导航和SLAM包
-RUN apt-get install -y \
+    ros-humble-rviz2 \
     ros-humble-nav2-bringup \
-    ros-humble-slam-toolbox
-
-# 步骤 2.5: 清理 apt 缓存
-# (请参见下面的重要提示)
-RUN rm -rf /var/lib/apt/lists/*
+    ros-humble-slam-toolbox \
+    && rm -rf /var/lib/apt/lists/*
    
 # 优化点 3: 将模型下载与源设置分离
 RUN mkdir -p /root/.gazebo/models && \
@@ -52,15 +40,6 @@ COPY ./src /workspace/src
 # 编译工作空间 - 使用bash -c来正确source环境
 RUN bash -c "cd /workspace && source /opt/ros/humble/setup.bash && colcon build"
  
-# 设置环境变量
-ENV TURTLEBOT3_MODEL=burger
- 
 # 设置启动时自动source环境
 RUN echo "source /opt/ros/humble/setup.bash" >> ~/.bashrc
 RUN echo "source /workspace/install/setup.bash" >> ~/.bashrc
-# 复制启动脚本
-COPY start_simulation.sh /workspace/start_simulation.sh
-RUN chmod +x /workspace/start_simulation.sh
- 
-# 设置容器启动命令
-CMD ["/bin/bash", "-c", "source ~/.bashrc && /workspace/start_simulation.sh"]
